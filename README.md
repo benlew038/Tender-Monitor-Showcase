@@ -1,4 +1,4 @@
-<img width="1657" height="847" alt="image" src="https://github.com/user-attachments/assets/be8cde5a-9683-405b-9ef0-6dfaae81def3" /># 📢 Tender Monitor
+# 📢 Tender Monitor
 
 A Python-based automated tender monitoring system that tracks tender notices from the XMUM website and sends real-time Telegram notifications whenever new tenders are published.
 
