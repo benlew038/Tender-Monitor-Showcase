@@ -136,6 +136,12 @@ python BusinessTracker.py
 
 ## 📸 Screenshots
 
+### Telegram Bot Interface
+
+<img width="482" height="700" alt="image" src="https://github.com/user-attachments/assets/69313370-fa3d-413b-84fe-5b44a32ad6c4" />
+
+---
+
 ### Telegram Notifications
 
 <img width="1102" height="997" alt="image" src="https://github.com/user-attachments/assets/ef2df17b-4f92-4009-93bc-8293c130c729" />
