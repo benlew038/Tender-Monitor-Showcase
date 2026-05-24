@@ -150,7 +150,7 @@ python BusinessTracker.py
 
 ### GitHub Repository
 
-(Add screenshot here)
+<img width="1535" height="1041" alt="image" src="https://github.com/user-attachments/assets/d80dff89-5484-4900-8c95-b8f1c78af1a1" />
 
 ---
 
