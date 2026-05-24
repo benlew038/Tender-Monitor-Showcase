@@ -31,10 +31,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def send_telegram_message(text):
-    """发送消息，统一添加时间戳"""
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     
-    # 添加统一格式的时间戳
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     formatted_text = f"{text}\n🕐 {timestamp}"
     
@@ -77,24 +75,21 @@ def fetch_tenders():
         soup = BeautifulSoup(response.text, 'html.parser')
         tenders = []
         
-        # 方法1：尝试查找招标卡片
         tender_cards = soup.select('.tender-card, .views-row article, .node--type-tender')
         
         if not tender_cards:
-            # 方法2：查找所有包含招标信息的div
             tender_cards = soup.select('div[class*="tender"], div[class*="views-row"]')
         
         logger.info(f"Found {len(tender_cards)} potential tender cards")
         
         for i, card in enumerate(tender_cards):
             try:
-                # 查找标题链接 - 尝试多种选择器
                 title_link = None
                 selectors = [
-                    'h5 a', 'h4 a', 'h3 a', 'h2 a',  # 标题标签内的链接
-                    '.title a', '.field--name-title a',  # 标题类
-                    'a[href*="tender"]',  # 包含tender的链接
-                    'a[href^="/tender-notice/"]',  # 以/tender-notice/开头的链接
+                    'h5 a', 'h4 a', 'h3 a', 'h2 a', 
+                    '.title a', '.field--name-title a',  
+                    'a[href*="tender"]',  
+                    'a[href^="/tender-notice/"]',  
                 ]
                 
                 for selector in selectors:
@@ -104,7 +99,6 @@ def fetch_tenders():
                         break
                 
                 if not title_link:
-                    # 如果没找到，尝试查找任何链接
                     all_links = card.find_all('a', href=True)
                     if all_links:
                         title_link = all_links[0]
@@ -113,23 +107,19 @@ def fetch_tenders():
                     logger.debug(f"No link found in card {i+1}")
                     continue
                 
-                # 获取链接
                 link = title_link.get('href', '').strip()
                 if not link:
                     continue
                 
-                # 构建完整URL
                 if link.startswith('/'):
                     link = BASE_URL + link
                 elif not link.startswith(('http://', 'https://')):
                     link = BASE_URL + '/' + link
                 
-                # 获取标题
                 title = title_link.get_text(strip=True)
                 if not title:
                     title = "Tender Notice"
-                
-                # 查找其他信息
+
                 tender_info = {
                     "title": title,
                     "link": link,
@@ -138,26 +128,22 @@ def fetch_tenders():
                     "description": None,
                     "published_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 }
-                
-                # 尝试提取招标编号和截止日期
-                # 用于 description 等用途，保留文本（可选）
+
                 text_content = card.get_text(" ", strip=True)
 
-                # ========== 1) Tender Name ==========
                 name_label = card.find("strong", string=lambda s: s and "Tender Name" in s)
                 if name_label:
-                    # <strong> 后面的文字通常就是名称
+
                     name_value = name_label.next_sibling
                     if name_value and isinstance(name_value, str) and name_value.strip():
                         tender_info["tender_name"] = name_value.strip()
                     else:
-                        # 备用方案：从整个 <p> 文本里去掉 "Tender Name:"
+
                         p = name_label.parent
                         full_text = p.get_text(" ", strip=True)
-                        # full_text 形如 "Tender Name: SUPPLY, DELIVERY AND INSTALLATION OF PROJECTOR"
+
                         tender_info["tender_name"] = full_text.replace("Tender Name:", "").strip()
 
-                # ========== 2) Tender Number ==========
                 number_label = card.find("strong", string=lambda s: s and "Tender Number" in s)
                 if number_label:
                     number_value = number_label.next_sibling
@@ -166,38 +152,32 @@ def fetch_tenders():
                     else:
                         p = number_label.parent
                         full_text = p.get_text(" ", strip=True)
-                        # full_text 形如 "Tender Number: XMUM25T1014-2"
+
                         tender_info["tender_number"] = full_text.replace("Tender Number:", "").strip()
 
-                # ========== 3) Closing Date ==========
                 closing_label = card.find("strong", string=lambda s: s and "Closing Date" in s)
                 if closing_label:
                     p = closing_label.parent
 
-                    # 优先从 <time> 标签拿
                     time_tag = p.find("time")
                     if time_tag:
-                        # 如果想用显示的文字：
+
                         display_text = time_tag.get_text(" ", strip=True)
-                        # 如果你更喜欢 YYYY-MM-DD 格式，也可以解析 time_tag["datetime"] 再格式化
                         tender_info["closing_date"] = display_text
                     else:
-                        # 备用：从整行文本里去掉 "Closing Date:"
                         full_text = p.get_text(" ", strip=True)
-                        # full_text 形如 "Closing Date: Wednesday, November 19, 2025 - 17:00"
                         tender_info["closing_date"] = full_text.replace("Closing Date:", "").strip()
 
-                
-                # 获取描述（前3个段落的文本）
+
                 paragraphs = card.find_all(['p', 'div'])
                 desc_parts = []
                 for p in paragraphs[:3]:
                     text = p.get_text(strip=True)
-                    if text and len(text) > 10:  # 只取有内容的段落
+                    if text and len(text) > 10: 
                         desc_parts.append(text)
                 
                 if desc_parts:
-                    tender_info["description"] = " | ".join(desc_parts[:100])  # 限制长度
+                    tender_info["description"] = " | ".join(desc_parts[:100]) 
                 
                 logger.info(f"  Found tender: {title[:50]}...")
                 tenders.append(tender_info)
@@ -245,7 +225,6 @@ def save_sent_tenders(tenders):
         logger.error(f"Error saving sent tenders: {e}")
 
 def format_tender_message(header, tender):
-    """紧凑格式的消息 - 不带时间戳"""
     parts = []
     parts.append(f"<b>{header}</b>")
     
@@ -264,11 +243,11 @@ def format_tender_message(header, tender):
     if tender.get("link"):
         parts.append(f"🔗 {tender['link']}")
     
-    # 注意：这里不添加时间戳！
+
     return "\n".join(parts)
 
 def check_config():
-    """检查配置是否有效"""
+
     errors = []
     
     if not BOT_TOKEN or BOT_TOKEN == "your_bot_token_here":
@@ -297,18 +276,15 @@ def check_config():
     return True
 
 def main():
-    """主监控函数"""
     logger.info("🚀 XMUM Tender Monitor Started")
     sent_tenders = load_sent_tenders()
     sent_links = [t.get("link") for t in sent_tenders if t.get("link")]
     
-    # 首次检查
     logger.info("Performing initial check...")
     tenders = fetch_tenders()
     
     if not tenders:
         logger.warning("⚠️ No tenders found on initial check")
-        # 发送启动通知
         startup_msg = (
             "📊 <b>XMUM Tender Monitor Started</b>\n"
             "No tenders found on initial check.\n"
@@ -318,19 +294,16 @@ def main():
     else:
         logger.info(f"Found {len(tenders)} tenders initially")
         
-        # 发送最新的招标
         latest = tenders[0]
         message = format_tender_message("📢 Latest Tender (Initial Check)", latest)
         
         if send_telegram_message(message):
-            # 记录已发送
             if latest.get("link") not in sent_links:
                 sent_tenders.append(latest)
                 sent_links.append(latest.get("link"))
             save_sent_tenders(sent_tenders)
             logger.info("✅ Initial tender sent")
     
-    # 持续监控循环
     check_count = 1
     while True:
         try:
@@ -344,15 +317,13 @@ def main():
                 check_count += 1
                 continue
             
-            # 找出新招标
             new_tenders = []
             for tender in tenders:
                 tender_link = tender.get("link")
                 if tender_link and tender_link not in sent_links:
                     new_tenders.append(tender)
                     logger.info(f"New tender found: {tender.get('title', 'Untitled')[:50]}...")
-            
-            # 发送新招标
+
             if new_tenders:
                 logger.info(f"Found {len(new_tenders)} new tenders")
                 
@@ -364,18 +335,15 @@ def main():
                         sent_links.append(tender.get("link"))
                         logger.info(f"✅ New tender sent: {tender.get('title', 'Untitled')[:50]}...")
                     
-                    # 在多个招标之间添加短暂延迟
                     if i < len(new_tenders) - 1:
                         time.sleep(1)
                 
-                # 保存更新
                 save_sent_tenders(sent_tenders)
             else:
                 logger.info("No new tenders found")
             
-            # 清理过旧的记录（防止文件过大）
             if len(sent_tenders) > 100:
-                sent_tenders = sent_tenders[-50:]  # 只保留最近50个
+                sent_tenders = sent_tenders[-50:] 
                 save_sent_tenders(sent_tenders)
                 sent_links = [t.get("link") for t in sent_tenders if t.get("link")]
                 logger.info("Cleaned up old tender records")
@@ -392,13 +360,11 @@ def main():
             logger.error(f"❌ Error in main loop: {e}")
             import traceback
             traceback.print_exc()
-            
-            # 继续运行，但等待更长时间
+
             logger.info("Waiting 60 seconds before retrying...")
             time.sleep(60)
 
 def setup_instructions():
-    """显示设置说明"""
     print("\n" + "="*60)
     print("📋 XMUM TENDER MONITOR - SETUP INSTRUCTIONS")
     print("="*60)
@@ -430,12 +396,10 @@ def setup_instructions():
     print("\n" + "="*60)
 
 if __name__ == "__main__":
-    # 检查是否需要显示设置说明
     if BOT_TOKEN == "your_bot_token_here" or CHAT_ID == "your_chat_id_here":
         setup_instructions()
         print("\n⚠️  Please set your Telegram credentials before running!")
         
-        # 可选：询问是否继续测试
         response = input("\nContinue with test run? (y/n): ").lower()
         if response == 'y':
             print("\nStarting monitor with test credentials...")
