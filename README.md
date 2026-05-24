@@ -1,4 +1,4 @@
-# 📢 Tender Monitor
+<img width="1657" height="847" alt="image" src="https://github.com/user-attachments/assets/be8cde5a-9683-405b-9ef0-6dfaae81def3" /># 📢 Tender Monitor
 
 A Python-based automated tender monitoring system that tracks tender notices from the XMUM website and sends real-time Telegram notifications whenever new tenders are published.
 
@@ -138,13 +138,13 @@ python BusinessTracker.py
 
 ### Telegram Notifications
 
-(Add screenshot here)
+<img width="710" height="800" alt="image" src="https://github.com/user-attachments/assets/2f4d3e1b-7186-4d40-87ed-5586b6ec44a2" />
 
 ---
 
 ### Railway Deployment
 
-(Add screenshot here)
+<img width="1164" height="1061" alt="image" src="https://github.com/user-attachments/assets/bc5dc8d1-4cd8-4354-acd6-454538eee5d3" />
 
 ---
 
