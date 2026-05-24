@@ -138,13 +138,13 @@ python BusinessTracker.py
 
 ### Telegram Notifications
 
-<img width="710" height="800" alt="image" src="https://github.com/user-attachments/assets/2f4d3e1b-7186-4d40-87ed-5586b6ec44a2" />
+<img width="1102" height="997" alt="image" src="https://github.com/user-attachments/assets/ef2df17b-4f92-4009-93bc-8293c130c729" />
 
 ---
 
 ### Railway Deployment
 
-<img width="1164" height="1061" alt="image" src="https://github.com/user-attachments/assets/bc5dc8d1-4cd8-4354-acd6-454538eee5d3" />
+<img width="1450" height="1103" alt="image" src="https://github.com/user-attachments/assets/c4cacebd-eeda-4904-bfdd-57c5c18b25f7" />
 
 ---
 
